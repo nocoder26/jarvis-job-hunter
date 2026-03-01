@@ -1,0 +1,50 @@
+# Render Blueprint
+# Deploy: https://render.com/deploy
+
+services:
+  # FastAPI Backend
+  - type: web
+    name: jarvis-api
+    runtime: python
+    rootDir: apps/api
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: THEIRSTACK_API_KEY
+        sync: false
+      - key: SERPAPI_API_KEY
+        sync: false
+      - key: APOLLO_API_KEY
+        sync: false
+      - key: ZEROBOUNCE_API_KEY
+        sync: false
+      - key: PROXYCURL_API_KEY
+        sync: false
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # Background Worker
+  - type: worker
+    name: jarvis-worker
+    runtime: python
+    rootDir: apps/worker
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: THEIRSTACK_API_KEY
+        sync: false
+      - key: SERPAPI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+    autoDeploy: true
