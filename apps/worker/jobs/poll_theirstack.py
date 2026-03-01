@@ -5,15 +5,18 @@ Poll TheirStack API for tech jobs in Spain.
 import os
 import httpx
 from datetime import datetime
+from dotenv import load_dotenv
 from supabase import create_client
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-THEIRSTACK_API_KEY = os.getenv("THEIRSTACK_API_KEY")
+load_dotenv()
 
 
 def get_supabase():
-    return create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    return create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
+
+
+def get_theirstack_key():
+    return os.getenv("THEIRSTACK_API_KEY")
 
 
 def poll_theirstack() -> int:
@@ -21,7 +24,8 @@ def poll_theirstack() -> int:
     Poll TheirStack for new tech jobs in Spain.
     Returns the number of new jobs found.
     """
-    if not THEIRSTACK_API_KEY:
+    api_key = get_theirstack_key()
+    if not api_key:
         return 0
 
     supabase = get_supabase()
@@ -55,7 +59,7 @@ def poll_theirstack() -> int:
             response = client.post(
                 "https://api.theirstack.com/v1/jobs/search",
                 headers={
-                    "Authorization": f"Bearer {THEIRSTACK_API_KEY}",
+                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 },
                 json=search_params,
@@ -80,22 +84,22 @@ def poll_theirstack() -> int:
                 if existing.data:
                     continue
 
-                # Get or create company
+                # Get or create company (company is a string in TheirStack API)
                 company_id = None
-                company_data = job.get("company", {})
-                if company_data:
-                    company_id = upsert_company(supabase, company_data)
+                company_name = job.get("company")
+                if company_name:
+                    company_id = upsert_company_by_name(supabase, company_name)
 
-                # Insert job
+                # Insert job (TheirStack uses job_title, date_posted, final_url)
                 job_data = {
                     "external_id": external_id,
                     "source": "theirstack",
                     "company_id": company_id,
-                    "title": job.get("title"),
+                    "title": job.get("job_title") or job.get("title"),
                     "description": job.get("description"),
                     "location": job.get("location"),
-                    "application_url": job.get("url"),
-                    "posted_at": job.get("posted_at"),
+                    "application_url": job.get("final_url") or job.get("url"),
+                    "posted_at": job.get("date_posted"),
                     "status": "new",
                 }
 
@@ -111,24 +115,18 @@ def poll_theirstack() -> int:
     return new_jobs_count
 
 
-def upsert_company(supabase, company_data: dict) -> str:
-    """Create or get existing company, return company ID."""
-    domain = company_data.get("domain")
+def upsert_company_by_name(supabase, company_name: str) -> str:
+    """Create or get existing company by name, return company ID."""
+    existing = supabase.table("companies").select("id").eq(
+        "name", company_name
+    ).execute()
 
-    if domain:
-        existing = supabase.table("companies").select("id").eq(
-            "domain", domain
-        ).execute()
-
-        if existing.data:
-            return existing.data[0]["id"]
+    if existing.data:
+        return existing.data[0]["id"]
 
     # Insert new company
     new_company = {
-        "name": company_data.get("name", "Unknown"),
-        "domain": domain,
-        "website_url": company_data.get("website"),
-        "funding_stage": company_data.get("funding_stage"),
+        "name": company_name,
     }
 
     result = supabase.table("companies").insert(new_company).execute()

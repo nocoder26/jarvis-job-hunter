@@ -5,15 +5,18 @@ Poll SerpApi (Google Jobs) for tech jobs in Spain.
 import os
 import httpx
 from datetime import datetime
+from dotenv import load_dotenv
 from supabase import create_client
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
+load_dotenv()
 
 
 def get_supabase():
-    return create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    return create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
+
+
+def get_serpapi_key():
+    return os.getenv("SERPAPI_API_KEY")
 
 
 def poll_serpapi() -> int:
@@ -21,7 +24,7 @@ def poll_serpapi() -> int:
     Poll SerpApi Google Jobs for new tech jobs in Spain.
     Returns the number of new jobs found.
     """
-    if not SERPAPI_API_KEY:
+    if not get_serpapi_key():
         return 0
 
     supabase = get_supabase()
@@ -59,7 +62,7 @@ def search_google_jobs(supabase, query: str) -> int:
                 "q": query,
                 "location": "Spain",
                 "hl": "en",
-                "api_key": SERPAPI_API_KEY,
+                "api_key": get_serpapi_key(),
             },
             timeout=30,
         )
