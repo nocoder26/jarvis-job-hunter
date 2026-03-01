@@ -15,7 +15,7 @@ export async function fetchJobs(params: FetchJobsParams = {}) {
   if (params.limit) searchParams.append('limit', params.limit.toString())
   if (params.offset) searchParams.append('offset', params.offset.toString())
 
-  const response = await fetch(`${API_URL}/api/jobs?${searchParams}`)
+  const response = await fetch(`${API_URL}/api/jobs/?${searchParams}`)
 
   if (!response.ok) {
     throw new Error('Failed to fetch jobs')
@@ -25,7 +25,7 @@ export async function fetchJobs(params: FetchJobsParams = {}) {
 }
 
 export async function getJob(jobId: string) {
-  const response = await fetch(`${API_URL}/api/jobs/${jobId}`)
+  const response = await fetch(`${API_URL}/api/jobs/${jobId}/`)
 
   if (!response.ok) {
     throw new Error('Failed to fetch job')
@@ -35,7 +35,7 @@ export async function getJob(jobId: string) {
 }
 
 export async function analyzeJob(jobId: string) {
-  const response = await fetch(`${API_URL}/api/jobs/${jobId}/analyze`, {
+  const response = await fetch(`${API_URL}/api/jobs/${jobId}/analyze/`, {
     method: 'POST',
   })
 
@@ -47,7 +47,7 @@ export async function analyzeJob(jobId: string) {
 }
 
 export async function applyToJob(jobId: string) {
-  const response = await fetch(`${API_URL}/api/actions/jobs/${jobId}/apply`, {
+  const response = await fetch(`${API_URL}/api/actions/jobs/${jobId}/apply/`, {
     method: 'POST',
   })
 
@@ -59,7 +59,7 @@ export async function applyToJob(jobId: string) {
 }
 
 export async function draftEmail(jobId: string, contactId?: string) {
-  const response = await fetch(`${API_URL}/api/actions/jobs/${jobId}/draft-email`, {
+  const response = await fetch(`${API_URL}/api/actions/jobs/${jobId}/draft-email/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ export async function draftEmail(jobId: string, contactId?: string) {
 }
 
 export async function getProfile() {
-  const response = await fetch(`${API_URL}/api/profile`)
+  const response = await fetch(`${API_URL}/api/profile/`)
 
   if (!response.ok) {
     if (response.status === 404) {
@@ -91,7 +91,7 @@ export async function uploadResume(file: File) {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(`${API_URL}/api/profile/upload`, {
+  const response = await fetch(`${API_URL}/api/profile/upload/`, {
     method: 'POST',
     body: formData,
   })
@@ -104,7 +104,7 @@ export async function uploadResume(file: File) {
 }
 
 export async function enrichLinkedIn(linkedinUrl: string) {
-  const response = await fetch(`${API_URL}/api/profile/enrich-linkedin`, {
+  const response = await fetch(`${API_URL}/api/profile/enrich-linkedin/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ export async function enrichLinkedIn(linkedinUrl: string) {
 }
 
 export async function discoverContacts(companyId: string) {
-  const response = await fetch(`${API_URL}/api/actions/contacts/discover`, {
+  const response = await fetch(`${API_URL}/api/actions/contacts/discover/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -92,10 +92,16 @@ async def update_profile(profile: CandidateProfile):
     return {"message": "Profile updated", "profile": result.data[0] if result.data else None}
 
 
+from pydantic import BaseModel
+
+class LinkedInRequest(BaseModel):
+    linkedin_url: str
+
 @router.post("/enrich-linkedin")
-async def enrich_from_linkedin(linkedin_url: str):
+async def enrich_from_linkedin(request: LinkedInRequest):
     """Enrich profile with LinkedIn data using Proxycurl."""
     from app.services.proxycurl import get_linkedin_profile
+    linkedin_url = request.linkedin_url
 
     supabase = get_supabase_client()
 
